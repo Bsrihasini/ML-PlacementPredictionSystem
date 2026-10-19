@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Data Preprocessing - Placement Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     TOP BAR
+========================================================= -->
+
+<header class="topbar">
+
+    <h1>
+        <span class="logo-dot"></span>
+        Placement Prediction Dashboard
+    </h1>
+
+</header>
+
+
+<!-- =========================================================
+     SIDEBAR
+========================================================= -->
+
+<aside class="sidebar">
+
+    <div class="sidebar-title">
+        Navigation
+    </div>
+
+
+    <!-- Dashboard -->
+
+    <a
+        href="{{ url_for('index') }}"
+        class="menu-item"
+    >
+        🏠
+        <span>Dashboard</span>
+    </a>
+
+
+    <!-- Dataset -->
+
+    <a
+        href="{{ url_for('data_loading') }}"
+        class="menu-item"
+    >
+        📂
+        <span>Dataset</span>
+    </a>
+
+
+    <!-- EDA -->
+
+    <a
+        href="{{ url_for('eda_page') }}"
+        class="menu-item"
+    >
+        🔍
+        <span>EDA</span>
+    </a>
+
+    <!-- correlation -->
+     <a href="{{ url_for('correlation_page') }}"
+        class="menu-item active"
+     >
+         🔗
+         <span>Correlation</span>
+     </a>
+
+    <!-- Preprocessing -->
+
+    <a
+        href="{{ url_for('preprocessing_page') }}"
+        class="menu-item active"
+    >
+        🧹
+        <span>Preprocessing</span>
+    </a>
+
+
+    <!-- Visualization -->
+
+    <a
+        href="{{ url_for('visualization_page') }}"
+        class="menu-item"
+    >
+        📊
+        <span>Visualization</span>
+    </a>
+
+
+    <!-- Regression -->
+
+    <a href="{{ url_for('model_page') }}" class="menu-item {% if active == 'models' %}active{% endif %}">
+        🤖
+        <span>Models</span>
+    </a>
+
+</aside>
+
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+
+<main class="main-content">
+
+
+    <!-- Page Header -->
+
+    <div class="page-header">
+
+        <h2>
+            Data Preprocessing
+        </h2>
+
+        <p>
+            Clean and transform the placement dataset
+            before performing machine learning analysis.
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         ERROR MESSAGE
+    ====================================================== -->
+
+    {% if error %}
+
+    <div class="error-box">
+
+        <strong>
+            Preprocessing Error
+        </strong>
+
+        <br>
+
+        {{ error }}
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         RESULTS
+    ====================================================== -->
+
+    {% if results %}
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <section class="cards">
+
+
+        <!-- Duplicates -->
+
+        <div class="card">
+
+            <div class="card-icon">
+                🗑️
+            </div>
+
+            <div class="card-label">
+                Duplicates Removed
+            </div>
+
+            <div class="card-value">
+
+                {{ results.duplicates_removed }}
+
+            </div>
+
+        </div>
+
+
+        <!-- Numeric Features -->
+
+        <div class="card">
+
+            <div class="card-icon">
+                🔢
+            </div>
+
+            <div class="card-label">
+                Numeric Features
+            </div>
+
+            <div class="card-value">
+
+                {{ results.numeric_columns|length }}
+
+            </div>
+
+        </div>
+
+
+        <!-- Categorical Features -->
+
+        <div class="card">
+
+            <div class="card-icon">
+                🔤
+            </div>
+
+            <div class="card-label">
+                Categorical Features
+            </div>
+
+            <div class="card-value">
+
+                {{ results.categorical_columns|length }}
+
+            </div>
+
+        </div>
+
+
+        <!-- Processed Features -->
+
+        <div class="card">
+
+            <div class="card-icon">
+                ⚙️
+            </div>
+
+            <div class="card-label">
+                Processed Features
+            </div>
+
+            <div class="card-value">
+
+                {{ results.feature_count }}
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+    <!-- =====================================================
+         PREPROCESSING PIPELINE
+    ====================================================== -->
+
+    <div class="card">
+
+        <h3>
+            Preprocessing Pipeline
+        </h3>
+
+        <br>
+
+
+        <div class="chart-grid">
+
+
+            <div class="card">
+
+                <div class="card-icon">
+                    1️⃣
+                </div>
+
+                <h3>
+                    Duplicate Removal
+                </h3>
+
+                <p>
+                    Duplicate records are identified and
+                    removed from the dataset.
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-icon">
+                    2️⃣
+                </div>
+
+                <h3>
+                    Missing Value Handling
+                </h3>
+
+                <p>
+                    Missing values are handled according
+                    to the data type of each feature.
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-icon">
+                    3️⃣
+                </div>
+
+                <h3>
+                    Numerical Processing
+                </h3>
+
+                <p>
+                    Numerical columns are prepared for
+                    machine learning algorithms.
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-icon">
+                    4️⃣
+                </div>
+
+                <h3>
+                    Categorical Encoding
+                </h3>
+
+                <p>
+                    Categorical variables are converted
+                    into numerical representations.
+                </p>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <br>
+
+
+    <!-- =====================================================
+         NUMERIC COLUMNS
+    ====================================================== -->
+
+    <div class="card">
+
+        <h3>
+            🔢 Numeric Columns
+        </h3>
+
+        <br>
+
+        {% if results.numeric_columns %}
+
+            {% for col in results.numeric_columns %}
+
+                <span class="badge">
+
+                    {{ col }}
+
+                </span>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>
+                No numeric columns found.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <br>
+
+
+    <!-- =====================================================
+         CATEGORICAL COLUMNS
+    ====================================================== -->
+
+    <div class="card">
+
+        <h3>
+            🔤 Categorical Columns
+        </h3>
+
+        <br>
+
+        {% if results.categorical_columns %}
+
+            {% for col in results.categorical_columns %}
+
+                <span class="badge">
+
+                    {{ col }}
+
+                </span>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>
+                No categorical columns found.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <br>
+
+
+    <!-- =====================================================
+         PROCESSED FEATURES
+    ====================================================== -->
+
+    {% if results.feature_names %}
+
+    <div class="card">
+
+        <h3>
+            ⚙️ Processed Features
+        </h3>
+
+        <p style="color:#758195; margin-top:8px; margin-bottom:18px;">
+
+            Features generated after preprocessing:
+
+        </p>
+
+
+        <div>
+
+            {% for feature in results.feature_names %}
+
+                <span class="badge">
+
+                    {{ feature }}
+
+                </span>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <br>
+
+
+    <!-- =====================================================
+         DATA PREPROCESSING SUMMARY
+    ====================================================== -->
+
+    <div class="card">
+
+        <h3>
+            📋 Preprocessing Summary
+        </h3>
+
+        <br>
+
+
+        <table class="data-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Processing Step
+                    </th>
+
+                    <th>
+                        Result
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                <tr>
+
+                    <td>
+                        Duplicate Removal
+                    </td>
+
+                    <td>
+
+                        {{ results.duplicates_removed }}
+
+                        rows removed
+
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Numeric Features
+                    </td>
+
+                    <td>
+
+                        {{ results.numeric_columns|length }}
+
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Categorical Features
+                    </td>
+
+                    <td>
+
+                        {{ results.categorical_columns|length }}
+
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Final Processed Features
+                    </td>
+
+                    <td>
+
+                        {{ results.feature_count }}
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    {% else %}
+
+
+    <!-- =====================================================
+         NO RESULTS
+    ====================================================== -->
+
+    {% if not error %}
+
+    <div class="card">
+
+        <div class="card-icon">
+            🧹
+        </div>
+
+        <h3>
+            No preprocessing results available
+        </h3>
+
+        <p style="margin-top:10px; color:#758195;">
+
+            Upload a dataset first, then return to this
+            page to perform preprocessing.
+
+        </p>
+
+
+        <br>
+
+
+        <a
+            href="{{ url_for('data_loading') }}"
+            class="btn"
+        >
+
+            Go to Dataset
+
+        </a>
+
+    </div>
+
+    {% endif %}
+
+    {% endif %}
+
+
+</main>
+
+
+</body>
+
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regression Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar"><h1><span class="logo-dot"></span>Placement Prediction Dashboard</h1></header>
+
+<aside class="sidebar">
+    <div class="sidebar-title">Navigation</div>
+    <a href="{{ url_for('index') }}" class="menu-item {% if active == 'dashboard' %}active{% endif %}">🏠 <span>Dashboard</span></a>
+    <a href="{{ url_for('data_loading') }}" class="menu-item {% if active == 'data-loading' %}active{% endif %}">📂 <span>Dataset</span></a>
+    <a href="{{ url_for('eda_page') }}" class="menu-item {% if active == 'eda' %}active{% endif %}">🔍 <span>EDA</span></a>
+    <a href="{{ url_for('correlation_page') }}" class="menu-item {% if active == 'correlation' %}active{% endif %}">🔗 <span>Correlation</span></a>
+    <a href="{{ url_for('preprocessing_page') }}" class="menu-item {% if active == 'preprocessing' %}active{% endif %}">🧹 <span>Preprocessing</span></a>
+    <a href="{{ url_for('visualization_page') }}" class="menu-item {% if active == 'visualization' %}active{% endif %}">📊 <span>Visualization</span></a>
+    <a href="{{ url_for('model_page') }}" class="menu-item {% if active == 'models' %}active{% endif %}">🤖 <span>Models</span></a>
+</aside>
+
+<main class="main-content">
+    <div class="page-header">
+        <h2>Linear Regression Analysis</h2>
+        <p>Predict a continuous numeric value such as Salary Package using student performance features.</p>
+    </div>
+
+    {% if error %}
+    <div class="error-box">{{ error }}</div>
+    {% endif %}
+
+    <div class="card">
+        <h3>🎯 Choose Regression Target</h3>
+        <p style="margin:8px 0 18px;color:#70819a;">
+            Linear Regression needs a continuous numeric target. <b>PlacementStatus</b> is intentionally not offered because it is a placement classification outcome, so Logistic Regression is more appropriate for that task.
+        </p>
+        <form method="POST" action="{{ url_for('regression_page') }}">
+            <label for="target"><b>Target variable:</b></label>
+            <select id="target" name="target" style="margin-left:10px;padding:10px;border-radius:6px;">
+                {% for option in target_options %}
+                    <option value="{{ option }}" {% if option == selected_target %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn" style="margin-left:10px;">Train Linear Regression</button>
+        </form>
+    </div>
+
+    {% if results %}
+    <br>
+
+    <section class="cards">
+        <div class="card">
+            <div class="card-icon">🎯</div>
+            <div class="card-label">Target</div>
+            <div class="card-value">{{ results.target }}</div>
+        </div>
+        <div class="card">
+            <div class="card-icon">📚</div>
+            <div class="card-label">Training Rows</div>
+            <div class="card-value">{{ results.training_rows }}</div>
+        </div>
+        <div class="card">
+            <div class="card-icon">🧪</div>
+            <div class="card-label">Testing Rows</div>
+            <div class="card-value">{{ results.test_rows }}</div>
+        </div>
+        <div class="card">
+            <div class="card-icon">📈</div>
+            <div class="card-label">R² Score</div>
+            <div class="card-value">{{ "%.4f"|format(results.r2_score) }}</div>
+        </div>
+    </section>
+
+    <br>
+
+    <section class="cards">
+        <div class="card"><div class="card-icon">📉</div><div class="card-label">MAE</div><div class="card-value">{{ "%.4f"|format(results.mae) }}</div></div>
+        <div class="card"><div class="card-icon">📊</div><div class="card-label">MSE</div><div class="card-value">{{ "%.4f"|format(results.mse) }}</div></div>
+        <div class="card"><div class="card-icon">📐</div><div class="card-label">RMSE</div><div class="card-value">{{ "%.4f"|format(results.rmse) }}</div></div>
+    </section>
+
+    <br>
+
+    <div class="card">
+        <h3>📈 Actual vs Predicted</h3>
+        <p style="margin:8px 0 18px;color:#70819a;">
+            Points closer to the ideal diagonal represent more accurate predictions.
+        </p>
+        <img src="{{ url_for('static', filename='charts/actual_vs_predicted.png') }}" class="model-chart" alt="Actual vs Predicted">
+        <img src="{{ url_for('static', filename='charts/residual_distribution.png') }}" class="model-chart" alt="Residual Distribution">
+    </div>
+
+    <br>
+
+    <div class="card">
+        <h3>⚙️ Features Used</h3>
+        {% for feature in results.feature_columns %}
+            <span class="badge">{{ feature }}</span>
+        {% endfor %}
+    </div>
+
+    <br>
+
+    <div class="card">
+        <h3>🔍 Most Influential Coefficients</h3>
+        <p style="margin:8px 0 18px;color:#70819a;">
+            A positive coefficient means the predicted target tends to increase as that feature increases, while a negative coefficient indicates the opposite, assuming other features remain constant.
+        </p>
+        <table class="data-table">
+            <thead><tr><th>Feature</th><th>Coefficient</th></tr></thead>
+            <tbody>
+            {% for row in results.coefficients[:10] %}
+                <tr><td>{{ row.feature }}</td><td>{{ "%.6f"|format(row.coefficient) }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</main>
+</body>
+</html>

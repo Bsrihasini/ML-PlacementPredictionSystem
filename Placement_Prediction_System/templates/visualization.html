@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Data Visualization - Placement Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     TOP BAR
+========================================================= -->
+
+<header class="topbar">
+
+    <h1>
+
+        <span class="logo-dot"></span>
+
+        Placement Prediction Dashboard
+
+    </h1>
+
+</header>
+
+
+
+<!-- =========================================================
+     SIDEBAR
+========================================================= -->
+
+<aside class="sidebar">
+
+    <div class="sidebar-title">
+        NAVIGATION
+    </div>
+
+
+    <!-- Dashboard -->
+
+    <a
+        href="{{ url_for('index') }}"
+        class="menu-item"
+    >
+
+        🏠
+
+        <span>
+            Dashboard
+        </span>
+
+    </a>
+
+
+    <!-- Dataset -->
+
+    <a
+        href="{{ url_for('data_loading') }}"
+        class="menu-item"
+    >
+
+        📂
+
+        <span>
+            Dataset
+        </span>
+
+    </a>
+
+
+    <!-- EDA -->
+
+    <a
+        href="{{ url_for('eda_page') }}"
+        class="menu-item"
+    >
+
+        🔍
+
+        <span>
+            EDA
+        </span>
+
+    </a>
+
+     <!-- correlation -->
+     <a href="{{ url_for('correlation_page') }}"
+        class="menu-item active"
+     >
+         🔗
+         <span>Correlation</span>
+     </a>
+
+    <!-- Preprocessing -->
+
+    <a
+        href="{{ url_for('preprocessing_page') }}"
+        class="menu-item"
+    >
+
+        🧹
+
+        <span>
+            Preprocessing
+        </span>
+
+    </a>
+
+
+    <!-- Visualization -->
+
+    <a
+        href="{{ url_for('visualization_page') }}"
+        class="menu-item active"
+    >
+
+        📊
+
+        <span>
+            Visualization
+        </span>
+
+    </a>
+
+
+    <!-- Regression -->
+
+    <a href="{{ url_for('model_page') }}" class="menu-item {% if active == 'models' %}active{% endif %}">
+        🤖
+        <span>Models</span>
+    </a>
+
+</aside>
+
+
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+
+<main class="main-content">
+
+
+    <!-- PAGE HEADER -->
+
+    <div class="page-header">
+
+        <h2>
+            Data Visualization
+        </h2>
+
+        <p>
+            Interactive charts for understanding student
+            performance and placement trends.
+        </p>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         ERROR
+    ====================================================== -->
+
+    {% if error %}
+
+    <div class="error-box">
+
+        <strong>
+            Visualization Error
+        </strong>
+
+        <br><br>
+
+        {{ error }}
+
+    </div>
+
+    {% endif %}
+
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <section class="cards">
+
+
+        <div class="card">
+
+            <div class="card-icon">
+                👨‍🎓
+            </div>
+
+            <div class="card-label">
+                Total Students
+            </div>
+
+            <div class="card-value">
+                {{ total_students }}
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-icon">
+                💼
+            </div>
+
+            <div class="card-label">
+                Placed Students
+            </div>
+
+            <div class="card-value">
+                {{ placed_students }}
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-icon">
+                📊
+            </div>
+
+            <div class="card-label">
+                Placement Rate
+            </div>
+
+            <div class="card-value">
+                {{ placement_rate }}%
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-icon">
+                🎓
+            </div>
+
+            <div class="card-label">
+                Average CGPA
+            </div>
+
+            <div class="card-value">
+                {{ average_cgpa }}
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================================
+         CHART GRID
+    ====================================================== -->
+
+    <section class="chart-grid">
+
+
+        <!-- =================================================
+             PLACEMENT STATUS
+        ================================================== -->
+
+        <div class="chart-card">
+
+            <h3>
+                Placement Status
+            </h3>
+
+            <p class="chart-description">
+                Distribution of placed and non-placed students.
+            </p>
+
+            <div class="chart-container">
+
+                <canvas id="placement"></canvas>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             CGPA BY PLACEMENT
+        ================================================== -->
+
+        <div class="chart-card">
+
+            <h3>
+                Average CGPA by Placement
+            </h3>
+
+            <p class="chart-description">
+                Average CGPA comparison between placement groups.
+            </p>
+
+            <div class="chart-container">
+
+                <canvas id="cgpa"></canvas>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             SALARY DISTRIBUTION
+        ================================================== -->
+
+        <div class="chart-card">
+
+            <h3>
+                Salary Package Distribution
+            </h3>
+
+            <p class="chart-description">
+                Distribution of salary packages among students.
+            </p>
+
+            <div class="chart-container">
+
+                <canvas id="salary"></canvas>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             TOP CITIES
+        ================================================== -->
+
+        <div class="chart-card">
+
+            <h3>
+                Top 10 Cities
+            </h3>
+
+            <p class="chart-description">
+                Number of students from each city.
+            </p>
+
+            <div class="chart-container">
+
+                <canvas id="cities"></canvas>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             ATTENDANCE VS CGPA
+        ================================================== -->
+
+        <div class="chart-card">
+
+            <h3>
+                Attendance vs CGPA
+            </h3>
+
+            <p class="chart-description">
+                Relationship between attendance and academic
+                performance.
+            </p>
+
+            <div class="chart-container">
+
+                <canvas id="scatter"></canvas>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================================
+         ADDITIONAL CHART
+    ====================================================== -->
+
+    <section class="chart-grid">
+
+
+        <div class="chart-card">
+
+            <h3>
+                Coding Test Score vs CGPA
+            </h3>
+
+            <p class="chart-description">
+                Relationship between coding performance
+                and CGPA.
+            </p>
+
+            <div class="chart-container">
+
+                <canvas id="coding"></canvas>
+
+            </div>
+
+        </div>
+
+
+        <div class="chart-card">
+
+            <h3>
+                Soft Skills Rating Distribution
+            </h3>
+
+            <p class="chart-description">
+                Distribution of students based on soft
+                skills rating.
+            </p>
+
+            <div class="chart-container">
+
+                <canvas id="softskills"></canvas>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =========================================================
+     CHART JAVASCRIPT
+========================================================= -->
+
+<script>
+
+
+/* ============================================================
+   GLOBAL CHART SETTINGS
+============================================================ */
+
+Chart.defaults.font.family =
+    "Arial, sans-serif";
+
+
+Chart.defaults.plugins.legend.labels.usePointStyle =
+    true;
+
+
+
+/* ============================================================
+   PLACEMENT STATUS
+============================================================ */
+
+new Chart(
+
+    document.getElementById("placement"),
+
+    {
+
+        type: "doughnut",
+
+        data: {
+
+            labels:
+                {{ placement_labels | tojson }},
+
+            datasets: [
+
+                {
+
+                    data:
+                        {{ placement_values | tojson }},
+
+                    borderWidth: 2
+
+                }
+
+            ]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            cutout: "60%",
+
+            plugins: {
+
+                legend: {
+
+                    position: "bottom"
+
+                }
+
+            }
+
+        }
+
+    }
+
+);
+
+
+
+/* ============================================================
+   AVERAGE CGPA
+============================================================ */
+
+new Chart(
+
+    document.getElementById("cgpa"),
+
+    {
+
+        type: "bar",
+
+        data: {
+
+            labels:
+                {{ cgpa_labels | tojson }},
+
+            datasets: [
+
+                {
+
+                    label:
+                        "Average CGPA",
+
+                    data:
+                        {{ cgpa_values | tojson }},
+
+                    borderWidth: 1,
+
+                    borderRadius: 6
+
+                }
+
+            ]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    title: {
+
+                        display: true,
+
+                        text: "Average CGPA"
+
+                    }
+
+                }
+
+            },
+
+            plugins: {
+
+                legend: {
+
+                    display: false
+
+                }
+
+            }
+
+        }
+
+    }
+
+);
+
+
+
+/* ============================================================
+   SALARY DISTRIBUTION
+============================================================ */
+
+new Chart(
+
+    document.getElementById("salary"),
+
+    {
+
+        type: "bar",
+
+        data: {
+
+            labels:
+                {{ salary_labels | tojson }},
+
+            datasets: [
+
+                {
+
+                    label:
+                        "Students",
+
+                    data:
+                        {{ salary_values | tojson }},
+
+                    borderWidth: 1,
+
+                    borderRadius: 5
+
+                }
+
+            ]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    title: {
+
+                        display: true,
+
+                        text: "Number of Students"
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+);
+
+
+
+/* ============================================================
+   TOP CITIES
+============================================================ */
+
+new Chart(
+
+    document.getElementById("cities"),
+
+    {
+
+        type: "bar",
+
+        data: {
+
+            labels:
+                {{ city_labels | tojson }},
+
+            datasets: [
+
+                {
+
+                    label:
+                        "Students",
+
+                    data:
+                        {{ city_values | tojson }},
+
+                    borderWidth: 1,
+
+                    borderRadius: 5
+
+                }
+
+            ]
+
+        },
+
+        options: {
+
+            indexAxis: "y",
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            scales: {
+
+                x: {
+
+                    beginAtZero: true
+
+                }
+
+            }
+
+        }
+
+    }
+
+);
+
+
+
+/* ============================================================
+   ATTENDANCE VS CGPA
+============================================================ */
+
+const scatterData = [];
+
+
+const xValues =
+    {{ scatter_x | tojson }};
+
+
+const yValues =
+    {{ scatter_y | tojson }};
+
+
+for (
+
+    let i = 0;
+
+    i < xValues.length;
+
+    i++
+
+) {
+
+    scatterData.push({
+
+        x: xValues[i],
+
+        y: yValues[i]
+
+    });
+
+}
+
+
+
+new Chart(
+
+    document.getElementById("scatter"),
+
+    {
+
+        type: "scatter",
+
+        data: {
+
+            datasets: [
+
+                {
+
+                    label:
+                        "Students",
+
+                    data:
+                        scatterData,
+
+                    pointRadius: 4,
+
+                    pointHoverRadius: 7
+
+                }
+
+            ]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            scales: {
+
+                x: {
+
+                    title: {
+
+                        display: true,
+
+                        text: "Attendance (%)"
+
+                    }
+
+                },
+
+                y: {
+
+                    title: {
+
+                        display: true,
+
+                        text: "CGPA"
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+);
+
+
+
+/* ============================================================
+   CODING TEST SCORE VS CGPA
+============================================================ */
+
+const codingData = [];
+
+
+const codingX =
+    {{ coding_x | tojson }};
+
+
+const codingY =
+    {{ coding_y | tojson }};
+
+
+for (
+
+    let i = 0;
+
+    i < codingX.length;
+
+    i++
+
+) {
+
+    codingData.push({
+
+        x: codingX[i],
+
+        y: codingY[i]
+
+    });
+
+}
+
+
+
+new Chart(
+
+    document.getElementById("coding"),
+
+    {
+
+        type: "scatter",
+
+        data: {
+
+            datasets: [
+
+                {
+
+                    label:
+                        "Students",
+
+                    data:
+                        codingData,
+
+                    pointRadius: 4,
+
+                    pointHoverRadius: 7
+
+                }
+
+            ]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            scales: {
+
+                x: {
+
+                    title: {
+
+                        display: true,
+
+                        text: "Coding Test Score"
+
+                    }
+
+                },
+
+                y: {
+
+                    title: {
+
+                        display: true,
+
+                        text: "CGPA"
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+);
+
+
+
+/* ============================================================
+   SOFT SKILLS RATING
+============================================================ */
+
+new Chart(
+
+    document.getElementById("softskills"),
+
+    {
+
+        type: "bar",
+
+        data: {
+
+            labels:
+                {{ softskills_labels | tojson }},
+
+            datasets: [
+
+                {
+
+                    label:
+                        "Students",
+
+                    data:
+                        {{ softskills_values | tojson }},
+
+                    borderWidth: 1,
+
+                    borderRadius: 5
+
+                }
+
+            ]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true
+
+                }
+
+            }
+
+        }
+
+    }
+
+);
+
+
+</script>
+
+
+</body>
+
+</html>

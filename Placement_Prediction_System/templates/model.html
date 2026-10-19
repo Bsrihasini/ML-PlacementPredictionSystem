@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Models | Placement Prediction Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.models-page{padding-bottom:30px}.model-hero{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.model-hero h2{margin:0}.dataset-pill{padding:10px 14px;border:1px solid #dbe7f4;border-radius:12px;background:#fff;color:#47617e;font-size:12px}
+.model-tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}.model-tab{border:1px solid #cfe0f5;background:#eef6ff;color:#1558b0;padding:14px 18px;border-radius:13px;font-weight:800;text-align:left;cursor:pointer}.model-tab.unsup{background:#effbf6;color:#087a59;border-color:#ccebdd}.model-tab.active{box-shadow:0 4px 15px rgba(31,111,235,.15)}
+.model-browser{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}.browser-card,.detail-card{background:#fff;border:1px solid #dce8f5;border-radius:16px;padding:15px;box-shadow:0 6px 22px rgba(35,76,120,.06)}
+.category{border:1px solid #dce8f5;border-radius:13px;margin-bottom:12px;padding:11px}.category h3{margin:0 0 9px;color:#173b66;font-size:15px}.category.uns h3{color:#087a59}.button-grid{display:flex;flex-wrap:wrap;gap:8px}.model-btn{border:1px solid #d8e5f3;background:#f7fbff;color:#17456f;border-radius:9px;padding:9px 12px;font-weight:700;font-size:12px;cursor:pointer}.model-btn:hover,.model-btn.selected{background:#2376e8;color:white;border-color:#2376e8}.uns .model-btn:hover,.uns .model-btn.selected{background:#16a579;border-color:#16a579}
+.detail-card h2{margin:0 0 5px;color:#173b66}.detail-card .desc{color:#6b7f96;font-size:13px;margin:0 0 14px}.attr-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}.attr{padding:6px 8px;background:#eef5fd;border:1px solid #d8e5f3;border-radius:7px;font-size:11px;color:#49647f}.target-box{padding:11px;background:#f8fbff;border:1px solid #dbe8f5;border-radius:11px;margin-bottom:12px}.target-box label{font-weight:700;font-size:12px;color:#365674}.target-box select{width:100%;margin-top:7px;padding:9px;border:1px solid #cbdced;border-radius:8px}
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}.metric{padding:12px;border:1px solid #dce8f5;border-radius:10px;background:#fbfdff}.metric small{display:block;color:#70849a}.metric strong{font-size:18px;color:#164e8c}.calc{padding:10px;border-left:3px solid #2376e8;background:#f7fbff;margin:6px 0;font-size:11px;color:#526a82}.chart-wrap{margin-top:14px}.chart-wrap img{width:100%;border:1px solid #dce8f5;border-radius:10px;background:#fff}.run-btn{width:100%;border:0;background:#2376e8;color:#fff;padding:12px;border-radius:10px;font-weight:800;cursor:pointer;margin-top:10px}.info{font-size:11px;color:#70849a;padding:10px;background:#f7fafc;border:1px dashed #d6e1ec;border-radius:9px;margin-top:10px}
+@media(max-width:1000px){.model-browser{grid-template-columns:1fr}.model-tabs{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="topbar"><h1><span class="logo-dot"></span>Placement Prediction Dashboard</h1></header>
+<div class="layout">
+<nav class="sidebar"><div class="sidebar-title">Navigation</div>
+<a href="{{ url_for('index') }}" class="menu-item">🏠 <span>Dashboard</span></a><a href="{{ url_for('data_loading') }}" class="menu-item">📂 <span>Dataset</span></a><a href="{{ url_for('eda_page') }}" class="menu-item">🔍 <span>EDA</span></a><a href="{{ url_for('correlation_page') }}" class="menu-item">🔗 <span>Correlation</span></a><a href="{{ url_for('preprocessing_page') }}" class="menu-item">🧹 <span>Preprocessing</span></a><a href="{{ url_for('visualization_page') }}" class="menu-item">📊 <span>Visualization</span></a><a href="{{ url_for('model_page') }}" class="menu-item active">🤖 <span>Models</span></a></nav>
+<main class="main-content models-page">
+<div class="model-hero"><div><h2>🤖 Models</h2><p>Explore, calculate and visualize every model directly from the dataset.</p></div><div class="dataset-pill">📊 Dataset: 50,000 rows · 32 columns</div></div>
+{% if error %}<div class="error-box">{{ error }}</div>{% endif %}
+<form method="POST" id="modelForm">
+<input type="hidden" name="model_name" id="model_name" value="{{ selected_model }}">
+<div class="model-tabs"><button type="button" class="model-tab active" onclick="showGroup('supervised')">🧠 Supervised Learning<br><small>Regression, trees, bagging & boosting</small></button><button type="button" class="model-tab unsup" onclick="showGroup('unsupervised')">🔗 Unsupervised Learning<br><small>Clustering & dimensionality reduction</small></button></div>
+<div class="model-browser">
+<section class="browser-card" id="supervised">
+<div class="category"><h3>📈 Regression</h3><div class="button-grid">{% for m in ['Linear Regression','Multiple Linear Regression','Ridge Regression','Lasso Regression'] %}<button type="button" class="model-btn {% if selected_model==m %}selected{% endif %}" onclick="selectModel('{{m}}')">{{m}}</button>{% endfor %}</div></div>
+<div class="category"><h3>🌳 Decision Trees</h3><div class="button-grid">{% for m in ['Decision Tree - ID3','Decision Tree - C4.5','Decision Tree - CART'] %}<button type="button" class="model-btn {% if selected_model==m %}selected{% endif %}" onclick="selectModel('{{m}}')">{{m.replace('Decision Tree - ','')}}</button>{% endfor %}</div></div>
+<div class="category"><h3>🧺 Bagging</h3><div class="button-grid"><button type="button" class="model-btn {% if selected_model=='Bagging' %}selected{% endif %}" onclick="selectModel('Bagging')">Bagging</button></div></div>
+<div class="category"><h3>⚡ Boosting</h3><div class="button-grid">{% for m in ['AdaBoost','Gradient Boosting','XGBoost','LightGBM'] %}<button type="button" class="model-btn {% if selected_model==m %}selected{% endif %}" onclick="selectModel('{{m}}')">{{m}}</button>{% endfor %}</div></div>
+</section>
+<section class="browser-card uns" id="unsupervised">
+<div class="category uns"><h3>🔵 Clustering</h3><div class="button-grid">{% for m in ['K-Means','Hierarchical Clustering','Agglomerative Clustering','DBSCAN'] %}<button type="button" class="model-btn {% if selected_model==m %}selected{% endif %}" onclick="selectModel('{{m}}')">{{m}}</button>{% endfor %}</div></div>
+<div class="category uns"><h3>📐 Dimensionality Reduction</h3><div class="button-grid"><button type="button" class="model-btn {% if selected_model=='PCA - Principal Component Analysis' %}selected{% endif %}" onclick="selectModel('PCA - Principal Component Analysis')">PCA — Principal Component Analysis</button></div></div>
+<div class="info">Unsupervised models use the numerical structure of the dataset automatically. No input-feature checkbox is shown.</div>
+</section>
+<section class="detail-card">
+{% if results %}<h2>{{ results.model }}</h2><p class="desc">{{ results.category }} model — values below are calculated from the uploaded dataset.</p><div class="attr-list">{% for a in results.attributes %}<span class="attr">{{a}}</span>{% endfor %}</div>
+{% else %}<h2>{% if selected_model %}{{selected_model}}{% else %}Select a Model{% endif %}</h2><p class="desc">Click any model button to calculate its results and generate its graph.</p>{% endif %}
+{% if selected_model not in ['K-Means','Hierarchical Clustering','Agglomerative Clustering','DBSCAN','PCA - Principal Component Analysis'] %}<div class="target-box"><label>🎯 Target Variable</label><select name="target" id="target"><option value="">Automatic default</option>{% for c in columns %}{% if c != 'StudentID' %}<option value="{{c}}" {% if selected_target==c %}selected{% endif %}>{{c}}</option>{% endif %}{% endfor %}</select></div>{% endif %}
+{% if results %}<div class="metric-grid">{% for k,v in results.metrics.items() %}<div class="metric"><small>{{k}}</small><strong>{{v}}</strong></div>{% endfor %}</div><h3>🧮 Calculations</h3>{% for c in results.calculations %}<div class="calc">{{c}}</div>{% endfor %}{% if results.chart %}<div class="chart-wrap"><h3>📈 Graph / Visualization</h3><img src="{{ url_for('static', filename='charts/models/' + results.chart.split('/')[-1]) }}" alt="Model graph"></div>{% endif %}{% endif %}
+<button type="submit" class="run-btn">▶ Calculate & Run Selected Model</button>
+</section>
+</div></form>
+</main></div>
+<script>
+function selectModel(name){
+  // IMPORTANT: selecting a model must NOT submit/run it.
+  // It only changes the selected model in the form.
+  document.getElementById('model_name').value = name;
+  document.querySelectorAll('.model-btn').forEach(function(btn){
+    btn.classList.toggle('selected', btn.textContent.trim() === name ||
+      (name.startsWith('Decision Tree - ') && btn.textContent.trim() === name.replace('Decision Tree - ','')));
+  });
+
+  const unsupervised = ['K-Means','Hierarchical Clustering','Agglomerative Clustering','DBSCAN','PCA - Principal Component Analysis'].includes(name);
+  const targetBox = document.querySelector('.target-box');
+  if (targetBox) targetBox.style.display = unsupervised ? 'none' : 'block';
+
+  // Clear old result so a result from K-Means can never appear under another model.
+  const detail = document.querySelector('.detail-card');
+  if (detail) {
+    const title = detail.querySelector('h2');
+    const desc = detail.querySelector('.desc');
+    if (title) title.textContent = name;
+    if (desc) desc.textContent = 'Model selected. Choose the target if required, then click Calculate & Run Selected Model.';
+    detail.querySelectorAll('.metric-grid,.calc,.chart-wrap,.detail-card > h3').forEach(function(el){
+      // Keep the target box and Run button; remove only old result blocks.
+      if (!el.closest('.target-box') && !el.classList.contains('run-btn')) el.remove();
+    });
+  }
+}
+
+function showGroup(which){
+  document.getElementById('supervised').style.opacity = which==='supervised' ? '1' : '.55';
+  document.getElementById('unsupervised').style.opacity = which==='unsupervised' ? '1' : '.55';
+}
+
+// Run is the ONLY action that submits the form.
+document.getElementById('modelForm').addEventListener('submit', function(e){
+  const model = document.getElementById('model_name').value;
+  if (!model) {
+    e.preventDefault();
+    alert('Please select a model first.');
+    return;
+  }
+});
+</script>
+</body></html>
